@@ -2,7 +2,12 @@
 
 A full-stack application for AI-powered job interview simulation using RAG (Retrieval-Augmented Generation) to generate personalized interview questions and evaluate responses.
 
-## 🎯 Features
+## � Demo Video
+
+[Watch Demo Video](https://drive.google.com/file/d/1UIaF7Qkk3z49tABEivwPTnpjCFZKI67O/view?usp=sharing)
+
+
+## �🎯 Features
 
 - **Authentication**: Secure signup/login with JWT and bcrypt
 - **Document Upload**: Drag-and-drop PDF upload for resume and job descriptions (max 2MB)
