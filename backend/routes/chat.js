@@ -91,33 +91,41 @@ router.post('/query', authenticateToken, async (req, res) => {
       type: chunk.type
     }));
 
-    // Use atomic update to avoid version conflicts
-    const userMessage = {
+    // Get or create chat session
+    let chat = await Chat.findOne({ userId: req.userId });
+    if (!chat) {
+      chat = new Chat({ userId: req.userId, messages: [] });
+    }
+
+    // Create message objects - user message doesn't need citations
+    chat.messages.push({
       role: 'user',
       content: message,
       timestamp: new Date()
-    };
+    });
 
-    const assistantMessage = {
+    // Assistant message with score and citations
+    chat.messages.push({
       role: 'assistant',
       content: feedback,
       score: score,
-      citations: citations,
+      citations: citations.map(c => ({
+        chunkIndex: c.chunkIndex,
+        snippet: c.snippet,
+        type: c.type
+      })),
       timestamp: new Date()
-    };
-
-    // Push both messages atomically
-    await Chat.findOneAndUpdate(
-      { userId: req.userId },
-      { 
-        $push: { 
-          messages: { 
-            $each: [userMessage, assistantMessage] 
-          } 
-        } 
-      },
-      { upsert: true, new: true }
-    );
+    });
+    
+    // Save the chat
+    try {
+      await chat.save();
+    } catch (saveError) {
+      console.error('Save error:', saveError);
+      // If save fails, try without citations
+      chat.messages[chat.messages.length - 1].citations = [];
+      await chat.save();
+    }
 
     res.json({
       response: feedback,
